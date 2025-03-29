@@ -129,6 +129,4 @@ def main():
         elif choice == "6":  # Выход из программы.
             print("Выход из программы.")
             break
-
-if __name__ == "__main__":
-    main()
+main()
