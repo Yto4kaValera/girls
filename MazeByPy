@@ -1,0 +1,134 @@
+import random
+from collections import deque
+def generate_maze(n):
+    maze = [[1 for _ in range(n)] for _ in range(n)]  # Создаём квадратную матрицу. 1 - стена, 0 - проход.
+    start = (random.randint(0, n - 1), random.randint(0, n - 1))
+
+    # Определяем случайную стартовую точку.
+    maze[start[0]][start[1]] = 0  # Делаем стартовую клетку проходимой
+
+    # Создаём список соседних стен относительно начальной точки.
+    walls = [
+        (start[0] + dx, start[1] + dy)
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        if 0 <= start[0] + dx < n and 0 <= start[1] + dy < n
+    ]
+
+    # генерация лабиринта
+    while walls:
+        wall = random.choice(walls)  # беру случайную стену.
+        walls.remove(wall)  # удаляю её из списка.
+        x, y = wall
+        if maze[x][y] == 1:  # Если клетка ещё является стеной.
+            # Считаем количество соседей-проходов.
+            neighbors = sum(
+                1
+                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                if 0 <= x + dx < n and 0 <= y + dy < n and maze[x + dx][y + dy] == 0
+            )
+            if neighbors == 1:  # Убедимся, что только один сосед - проход.
+                maze[x][y] = 0  # Делаем эту клетку проходимой.
+                # кидаем её соседние клетки в список стен.
+                for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < n and 0 <= ny < n and maze[nx][ny] == 1:
+                        walls.append((nx, ny))
+    return maze  # готовый лабиринт.
+
+# ищем путь поиском в ширину
+def find_path(maze, start, end):
+    queue = deque([(*start, [])])  # очередь, в ней храним текущую клетку и пройденный путь.
+    visited = set()  #тут отслеживаем уже посещённые клетки.
+
+    while queue:  # пока очередь не пуста
+        x, y, path = queue.popleft()  # берем текущую клетку из начала очереди.
+        if (x, y) == end:  # если дошли до конечной точки.
+            return path + [(x, y)]  # возвращаем полный путь.
+
+        if (x, y) in visited:  #если клетка уже была посещена, скип
+            continue
+        visited.add((x, y))  #добавляем клетку в множество посещённых.
+
+        #добавляем соседей текущей клетки в очередь.
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if (
+                0 <= nx < len(maze)
+                and 0 <= ny < len(maze)
+                and maze[nx][ny] == 0  #проверяем, что соседняя клетка проходимая.
+                and (nx, ny) not in visited  #и она ещё не была посещена.
+            ):
+                queue.append((nx, ny, path + [(x, y)]))  #добавляем в очередь.
+
+    return 0  #если пути нет, возвращаем 0.
+
+#печатаем лабиринта в консоль
+def print_maze(maze):
+    for row in maze:
+        print(" ".join("#" if cell == 1 else "." for cell in row))
+    #каждая строка лабиринта выводится, где # - стена, а . - проход.
+
+def main():
+    n = int(input("Введите размер лабиринта: "))
+    maze = generate_maze(n)
+
+    start = (0, 0)
+    end = (n - 1, n - 1)
+
+    while True:
+        print("\nТекущий лабиринт:")
+        print_maze(maze)
+        print(f"Старт: {start}, Конец: {end}")
+
+        print("\nМеню:")
+        print("1. Добавить непроходимую клетку")
+        print("2. Удалить непроходимую клетку")
+        print("3. Установить начальную точку")
+        print("4. Установить конечную точку")
+        print("5. Найти путь")
+        print("6. Выход")
+
+        choice = input("Выберите действие: ")
+
+        if choice == "1":  # Добавить стену.
+            x, y = map(int, input("Введите координаты клетки (x y): ").split())
+            if 0 <= x < n and 0 <= y < n:
+                maze[x][y] = 1
+            else:
+                print("Некорректные координаты.")
+
+        elif choice == "2":  # Удалить стену.
+            x, y = map(int, input("Введите координаты клетки (x y): ").split())
+            if 0 <= x < n and 0 <= y < n:
+                maze[x][y] = 0
+            else:
+                print("Некорректные координаты.")
+
+        elif choice == "3":  # Изменить начальную точку.
+            x, y = map(int, input("Введите координаты начала (x y): ").split())
+            if 0 <= x < n and 0 <= y < n and maze[x][y] == 0:
+                start = (x, y)
+            else:
+                print("Некорректные координаты или клетка непроходима.")
+
+        elif choice == "4":  # Изменить конечную точку.
+            x, y = map(int, input("Введите координаты конца (x y): ").split())
+            if 0 <= x < n and 0 <= y < n and maze[x][y] == 0:
+                end = (x, y)
+            else:
+                print("Некорректные координаты или клетка непроходима.")
+
+        elif choice == "5":  # Найти путь с помощью BFS.
+            path = find_path(maze, start, end)
+            if path:
+                print("\nНайденный путь:")
+                print(path)
+            else:
+                print("\nПуть не найден.")
+
+        elif choice == "6":  # Выход из программы.
+            print("Выход из программы.")
+            break
+
+if __name__ == "__main__":
+    main()
