@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"><!-- чтобы отображалось (почти) везде -->
-    <title>Самый лучший алгоритм</title>
+    <title>Самая лучшая нейронка</title>
     <style>
         body {
             display: flex;
@@ -21,12 +21,13 @@
             margin-bottom: 20px;
         }
 
-
         canvas {
             border: 2px solid black;
             cursor: crosshair;
             background-color: white;
-        }           <!-- поле для рисования -->
+        }
+        /*поле для рисования*/
+
 
         .controls {
             margin-top: 10px;
@@ -46,25 +47,25 @@
 
             button:hover {
                 background-color: #ffc0cb;
-            }      <!-- подсветка кнопки при наводке -->
-        
+            }
+        /*подсветка кнопки при наводке*/
 
         #result {
             margin-top: 15px;
             font-size: 18px;
             font-weight: bold;
-        } 
+        }
     </style>
 </head>
 
 <body>
-    <h1>Рисуй</h1>
-    <canvas id="canvas" width="200" height="200"></canvas>      <!-- поле для рисования -->
+    <h1>Нарисуй что-нибудь</h1>
+    <canvas id="canvas" width="280" height="280"></canvas>
     <div class="controls">
         <button onclick="clearCanvas()">Очистить</button>
         <button onclick="sendImage()">Какая цифра?</button>
     </div>
-    <p id="result"></p>         <!-- где будет цифра-ответ -->
+    <p id="result"></p>
 
 
 
@@ -77,11 +78,30 @@
         canvas.addEventListener("mouseup", () => drawing = false);  //опущено -> конец рисунка
         canvas.addEventListener("mousemove", draw); //двигается -> просто рисуют
 
+
+        //function startPosition(e) {
+        //    drawing = true;
+        //    draw(e);
+        //}//начало рисунка
+        //function endPosition() {
+        //    drawing = false;
+        //    ctx.beginPath();
+        //}//конец рисунка
+        //function draw(e) {
+        //    if (!drawing) return;
+        //
+        //    ctx.lineWidth = 5;
+        //    ctx.lineTo(e.offsetX, e.offsetY);   //линия от координаты (зажатой мышкой) offsetX до offsetY
+        //    ctx.stroke();   //отображает эту линию
+        //    ctx.beginPath();
+        //    ctx.moveTo(e.offsetX, e.offsetY); //новые координаты по которым можно строить линию
+        //}
+
         function draw(event) {
             if (!drawing) return;
             ctx.fillStyle = "black";
-            ctx.fillRect(event.offsetX, event.offsetY, 10, 10); //рисует пикселями по 10
-        }
+            ctx.fillRect(event.offsetX, event.offsetY, 9, 9); //рисует пикселями по 5
+        }//это по пикселям рисует а не линиями но линиями плохо работает так что пусть это
 
         function clearCanvas() {
             ctx.fillStyle = "white";
@@ -91,18 +111,24 @@
 
         function sendImage() {
             const smallCanvas = document.createElement("canvas");
-            smallCanvas.width = 50;
-            smallCanvas.height = 50;
+            smallCanvas.width = 28;
+            smallCanvas.height = 28;
             const smallCtx = smallCanvas.getContext("2d");
 
+            smallCtx.fillStyle = "white";
+            smallCtx.fillRect(0, 0, 28, 28);
+
             //уменьшает размер холста
-            smallCtx.drawImage(canvas, 0, 0, 50, 50);
+            smallCtx.drawImage(canvas, 0, 0, 28, 28);
+
+            //document.body.appendChild(smallCanvas); //уменьшенная картинка
+
 
             smallCanvas.toBlob((blob) => {
                 const formData = new FormData();
                 formData.append("image", blob, "digit.png");  //отправление изображения
 
-                
+
                 console.log("Отправляется файл:", formData.get("image"));   //лог
 
                 fetch("/predict", {
@@ -111,8 +137,12 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        console.log("Ответ от сервера:", data); //лог
-                        document.getElementById("result").innerText = "Я думаю, что это " + (data.prediction || "Ошибка");
+                        console.log("Ответ от сервера:", data); //ЛОГ
+                        if (data.error) {
+                            document.getElementById("result").innerText = "Ошибка: " + data.error;
+                        } else {
+                            document.getElementById("result").innerText = "Я думаю, что это " + data.prediction;
+                        }
                     })
                     .catch(error => console.error("Ошибка при отправке:", error));
             }, "image/png");
