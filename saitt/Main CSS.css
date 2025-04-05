@@ -20,22 +20,32 @@ nav ul li {
 }
 
 a.btn-link {
-    display: inline-block;
-    text-decoration: none;
-    padding: 10px 20px;
-    color: #1c1c1c;
+    display: block;
+    width: 200px;
+    margin: 20px auto 0;
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
     background-color: #ff69b4;
+    color: #ffc0cb;
     border-radius: 25px;
-    font-size: 18px;
     font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a.btn-link:hover {
-    background-color: #ff85c7;
+    background-color: #ffc0cb;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,105,180,0.3);
     color: #ffffff;
+    text-decoration: none;
 }
 
+
+
 a.btn-link:visited {
-    color: #1c1c1c;
+    color: #ffffff;
 }
