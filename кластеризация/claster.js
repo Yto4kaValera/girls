@@ -101,8 +101,8 @@ function kMeans(points, k){
 canvas.addEventListener('click', function(e) {
     let x = e.pageX - canvas.offsetLeft;
     let y = e.pageY - canvas.offsetTop;
-    points.push(makeDot(x, y));
     draw(x, y, 'white');
+    points.push(makeDot(x, y));
 });
 
 function draw(x, y, color) {
@@ -113,7 +113,6 @@ function draw(x, y, color) {
 }
 
 function runClust() {
-    if (points.length === 0) return;
 
     let k = 3;
     let res = kMeans(points, k);
