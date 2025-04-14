@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Задача коммивояжера</title>
+    <link rel="stylesheet" href="GenotekaStyles.css">
+</head>
+<body>
+
+<h2>Задача коммивояжера</h2>
+<canvas id="map" width="800" height="400"></canvas><br>
+<div class="button-row">
+    <button id="go">Старт</button>
+    <button id="reset">Сброс</button>
+</div>
+<div class="button-row">
+    <a href="Main.html" class="fancy-button">Ко всем алгоритмам</a>
+</div>
+
+
+<p id="out"></p>
+
+<script>
+    let c = document.getElementById('map');
+    let ctx = c.getContext('2d');
+    let dots = [];             // точки, которые будем рисовать на карте
+    let popCount = 100;        // число случайных маршрутов
+    let mutChance = 0.1;       // шанс так сказать мутации
+    let bestWay = [];
+    let minDist = 9999999;
+    let running = false;       // идет ли анимация
+    let intervalId = null;     // интервал для анимации
+    let currentGen = [];       // текущее поколения путей
+    let iter = 0;
+    const maxIter = 1000;
+
+    // Обработчик клика на канвас, добавляющий новую точку
+    c.onclick = function(e) {
+        if (running) return;  // Если анимация уже идет, не добавляем точку
+        let bx = c.getBoundingClientRect();
+        let x = e.clientX - bx.left;
+        let y = e.clientY - bx.top;
+        dots.push({x: x, y: y});  // Добавляем точку в массив
+        drawDots();  // Перерисовываем все точки
+    };
+
+    // Функция рисования точек на канвасе
+    function drawDots() {
+        ctx.clearRect(0, 0, c.width, c.height);  // Очищаем холст
+        for (let i = 0; i < dots.length; i++) {
+            ctx.beginPath();
+            ctx.arc(dots[i].x, dots[i].y, 5, 0, Math.PI * 2);  // Рисуем точку
+            ctx.fillStyle = 'hotpink';  // Цвет точек
+            ctx.fill();
+        }
+    }
+
+    // Функция рисования линии по порядку точек
+    function drawLine(path) {
+        drawDots();  // Перерисовываем все точки
+        ctx.beginPath();
+        ctx.moveTo(dots[path[0]].x, dots[path[0]].y);
+        for (let i = 1; i < path.length; i++) {
+            ctx.lineTo(dots[path[i]].x, dots[path[i]].y);  // Рисуем линию между точками
+        }
+        ctx.lineTo(dots[path[0]].x, dots[path[0]].y); // Замкнуть путь (возвращаемся в первую точку)
+        ctx.strokeStyle = '#fff';  // Белый цвет линии
+        ctx.lineWidth = 2;         // Толщина линии
+        ctx.stroke();              // Отображаем линию
+    }
+
+    // Функция для вычисления длины пути
+    function getLength(order) {
+        let d = 0;
+        for (let i = 0; i < order.length - 1; i++) {
+            let a = dots[order[i]];
+            let b = dots[order[i + 1]];
+            d += Math.hypot(a.x - b.x, a.y - b.y);  // Расстояние между двумя точками
+        }
+        let last = dots[order[order.length - 1]];
+        let first = dots[order[0]];
+        d += Math.hypot(last.x - first.x, last.y - first.y);  // Замкнутая линия (расстояние до первой точки)
+        return d;  // Возвращаем длину пути
+    }
+
+    // Функция для создания начальной популяции случайных маршрутов
+    function createGen() {
+        let gen = [];
+        for (let i = 0; i < popCount; i++) {
+            let arr = [];
+            for (let j = 0; j < dots.length; j++) arr.push(j);  // Индексы всех точек
+            for (let j = arr.length - 1; j > 0; j--) {
+                let r = Math.floor(Math.random() * (j + 1));  // Случайный индекс для обмена
+                [arr[j], arr[r]] = [arr[r], arr[j]];  // Меняем местами
+            }
+            gen.push(arr);  // Добавляем маршрут в популяцию
+        }
+        return gen;  // Возвращаем популяцию
+    }
+
+    // Функция для мутации маршрута (случайный обмен местами двух точек)
+    function mutate(r) {
+        if (Math.random() < mutChance) {  // С вероятностью mutChance меняем местами две точки
+            let a = Math.floor(Math.random() * r.length);
+            let b = Math.floor(Math.random() * r.length);
+            [r[a], r[b]] = [r[b], r[a]];  // Обмен местами
+        }
+    }
+
+    // Функция для скрещивания двух маршрутов (создание нового маршрута)
+    function mix(p1, p2) {
+        let a = Math.floor(Math.random() * p1.length);
+        let b = Math.floor(Math.random() * p1.length);
+        let mini = Math.min(a, b);
+        let maxi = Math.max(a, b);
+        let temp = p1.slice(mini, maxi);  // Берем подмассив из одного маршрута
+        for (let i = 0; i < p2.length; i++) {
+            if (!temp.includes(p2[i])) temp.push(p2[i]);  // Добавляем оставшиеся элементы из другого маршрута
+        }
+        return temp;  // Возвращаем новый маршрут
+    }
+
+    // Функция для создания нового поколения путей
+    function newGen(old) {
+        old.sort((x, y) => getLength(x) - getLength(y));  // Сортируем пути по длине (от наименьшей)
+        let fresh = [];
+        for (let i = 0; i < popCount; i++) {
+            let mom = old[Math.floor(Math.random() * popCount)];
+            let dad = old[Math.floor(Math.random() * popCount)];
+            let baby = mix(mom, dad);  // Скрещиваем два маршрута
+            mutate(baby);  // Применяем мутацию
+            fresh.push(baby);  // Добавляем новый маршрут в популяцию
+        }
+        return fresh;  // Возвращаем новое поколение
+    }
+
+    // Обработчик кнопки "Старт"
+    document.getElementById('go').onclick = function () {
+        if (dots.length < 2 || running) return;  // Если точек меньше двух или анимация уже идет
+
+        minDist = 9999999;
+        bestWay = [];
+        iter = 0;
+        currentGen = createGen();  // Создаем начальную популяцию
+        running = true;
+
+        intervalId = setInterval(() => {
+            if (iter >= maxIter) {  // Если количество итераций больше максимума, останавливаем анимацию
+                clearInterval(intervalId);
+                running = false;
+                document.getElementById('out').innerText = "Лучший путь: " + minDist.toFixed(2);
+                return;
+            }
+
+            currentGen = newGen(currentGen);  // Создаем новое поколение
+            let d = getLength(currentGen[0]);  // Рассчитываем длину пути
+            if (d < minDist) {
+                minDist = d;
+                bestWay = currentGen[0];  // Обновляем лучший путь
+                drawLine(bestWay);  // Рисуем лучший путь
+                document.getElementById('out').innerText = "Длина: " + minDist.toFixed(2);  // Выводим длину пути
+            }
+
+            iter++;
+        }, 25);  // Задержка между итерациями (в мс)
+    };
+
+    // Обработчик кнопки "Сброс"
+    document.getElementById('reset').onclick = function () {
+        dots = [];  // Очищаем массив точек
+        bestWay = [];  // Очищаем лучший путь
+        minDist = 9999999;  // Сброс минимальной длины пути
+        ctx.clearRect(0, 0, c.width, c.height);  // Очищаем холст
+        document.getElementById('out').innerText = "";  // Очищаем вывод
+        if (intervalId) clearInterval(intervalId);  // Останавливаем анимацию, если она была
+        running = false;
+    };
+</script>
+
+</body>
+</html>
