@@ -1,0 +1,162 @@
+﻿body {
+    background-color: #1e1e1e;
+    color: #ff69b4;
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+}
+
+h1, h2 {
+    text-align: center;
+    margin: 25px 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+form {
+    background: #2d2d2d;
+    padding: 25px;
+    border-radius: 12px;
+    margin: 30px auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+textarea {
+    width: 100%;
+    padding: 15px;
+    margin: 15px 0;
+    background: #333;
+    border: 2px solid #ff69b4;
+    border-radius: 8px;
+    color: #ff69b4;
+    font-size: 16px;
+    resize: vertical;
+    min-height: 150px;
+}
+
+    textarea::placeholder {
+        color: #ff69b499;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #ffc0cb;
+        box-shadow: 0 0 10px #ff69b480;
+    }
+
+button {
+    display: block;
+    width: 200px;
+    margin: 20px auto 0;
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    background-color: #ff69b4;
+    color: #1e1e1e;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+    button:hover {
+        background-color: #ffc0cb;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255,105,180,0.3);
+    }
+
+.decision-tree {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.8;
+}
+
+.tree-node {
+    position: relative;
+    padding: 10px;
+    margin: 5px 0;
+    border-left: 2px solid #ff69b4;
+}
+
+    .tree-node::before {
+        content: "";
+        position: absolute;
+        left: -2px;
+        top: 50%;
+        width: 20px;
+        height: 2px;
+        background: #ff69b4;
+    }
+
+.tree-leaf {
+    padding: 8px;
+    margin: 5px 0;
+    background: #2d2d2d;
+    border-radius: 5px;
+    border: 1px solid #00ff0080;
+}
+
+.node-condition {
+    color: #ff69b4;
+    font-weight: bold;
+}
+
+.node-class {
+    color: #00ff00;
+    margin-left: 10px;
+}
+
+.node-samples {
+    color: #888;
+    font-size: 0.8em;
+}
+
+.tree-container {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+#prediction-result {
+    text-align: center;
+    font-size: 24px;
+    margin: 30px 0;
+    padding: 20px;
+    background: #2d2d2d;
+    border-radius: 12px;
+    border: 2px solid #ff69b4;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    textarea {
+        min-height: 100px;
+    }
+
+    button {
+        width: 100%;
+    }
+}

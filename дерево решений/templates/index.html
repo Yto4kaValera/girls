@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дерево решений</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>🎋 Дерево решений</h1>
+
+    <form action="/train" method="post">
+        <h2>🔧 Обучение модели</h2>
+        <textarea name="csv_data" placeholder="Пример формата:
+Возраст,Доход,Студент,Кредит
+25,50000,Нет,Низкий
+32,120000,Да,Высокий"></textarea>
+        <button type="submit">Обучить модель</button>
+    </form>
+
+    <form action="/predict" method="post">
+        <h2>🔮 Предсказание</h2>
+        <textarea name="csv_data" placeholder="Пример данных для предсказания:
+35,80000,Да
+42,95000,Нет"></textarea>
+        <button type="submit">Получить предсказание</button>
+    </form>
+
+    {% if prediction %}
+    <div id="prediction-result">
+        🎯 Результат предсказания: <strong>{{ prediction }}</strong>
+    </div>
+    {% endif %}
+
+    <h2>🌳 Графическое представление</h2>
+    <div class="tree-container">
+        {{ html_tree|safe }}
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
