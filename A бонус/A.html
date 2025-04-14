@@ -4,30 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Лабиринт</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="stylesA.css">
 </head>
 <body>
+<h1>Лабиринт</h1>
 <div class="container">
-  <div class="row text-center mb-4">
-    <h1 class="display-5">ЛАБИРИНТ</h1>
-  </div>
+  <div class="form-section">
+    <label for="sizeInput">Введите размер лабиринта:</label>
+    <input type="number" id="sizeInput" value="10" min="5" max="50">
 
-  <div class="row justify-content-center mb-4">
-    <div class="col-md-6">
-      <label for="sizeInput" class="form-label">Введите размер лабиринта:</label>
-      <input type="number" class="form-control mb-3" id="sizeInput" value="10" min="5" max="50">
-      <div class="d-flex justify-content-center">
-        <button id="generateButton" class="btn btn-lg">Сгенерировать лабиринт</button>
-        <button id="startButton" class="btn btn-lg ms-2">Запустить поиск пути</button>
-      </div>
+    <div class="button-row">
+      <button id="generateButton" class="button">Сгенерировать лабиринт</button>
+      <button id="startButton" class="button">Запустить поиск пути</button>
+    </div>
+    <div class="button-row">
+      <a href="Main.html" class="button">Ко всем алгоритмам</a>
     </div>
   </div>
 
-  <div class="row justify-content-center">
-    <div class="col-auto">
-      <canvas id="mazeCanvas" class="border"></canvas>
-    </div>
+  <div class="canvas-wrapper">
+    <canvas id="mazeCanvas" class="border"></canvas>
   </div>
 
   <div id="message"></div>
@@ -38,18 +34,15 @@
   let maze = [];
   let start = [0, 0];
   let finish = [9, 9];
-  let selectingStart = false;
-  let selectingFinish = false;
+  let selectStart = false;
+  let selectFinish = false;
 
-  // Генерация лабиринта
-  function generateMaze(size)
-  {
+  function genMaze(size) {
     maze = Array.from({ length: size }, () => Array(size).fill(0));
     start = [0, 0];
     finish = [size - 1, size - 1];
 
-    for (let i = 0; i < Math.floor(size * size * 0.3); i++)
-    {
+    for (let i = 0; i < Math.floor(size * size * 0.3); i++) {
       const x = Math.floor(Math.random() * size);
       const y = Math.floor(Math.random() * size);
       if ((x !== start[0] || y !== start[1]) && (x !== finish[0] || y !== finish[1])) {
@@ -58,7 +51,6 @@
     }
   }
 
-  // Вывод лабиринта
   function drawMaze(maze, path = []) {
     const canvas = document.getElementById('mazeCanvas');
     const ctx = canvas.getContext('2d');
@@ -77,20 +69,17 @@
       ctx.fillRect(y * cellSize, x * cellSize, cellSize - 2, cellSize - 2);
     });
 
-    if (start)
-    {
+    if (start) {
       ctx.fillStyle = '#93557d';
       ctx.fillRect(start[1] * cellSize, start[0] * cellSize, cellSize - 2, cellSize - 2);
     }
 
-    if (finish)
-    {
+    if (finish) {
       ctx.fillStyle = '#8e55b6';
       ctx.fillRect(finish[1] * cellSize, finish[0] * cellSize, cellSize - 2, cellSize - 2);
     }
   }
 
-  // Анимация поиска
   async function Animation() {
     const queue = [[...start, []]];
     const visited = new Set();
@@ -119,31 +108,31 @@
     }
 
     if (!pathFound) {
-      document.getElementById('message').textContent = "Путь нельзя найти.";
+      document.getElementById('message').textContent = "Путь нельзя найти";
     }
   }
 
-  function handleCellClick(x, y) {
-    if (selectingStart) {
+  function clickStartFinish(x, y) {
+    if (selectStart) {
       start = [x, y];
-      selectingStart = false;
-      document.getElementById('message').textContent = "Старт установлен.";
-    } else if (selectingFinish) {
+      selectStart = false;
+      document.getElementById('message').textContent = "Старт установлен";
+    } else if (selectFinish) {
       finish = [x, y];
-      selectingFinish = false;
-      document.getElementById('message').textContent = "Финиш установлен.";
+      selectFinish = false;
+      document.getElementById('message').textContent = "Финиш установлен";
     } else {
       if (x === start[0] && y === start[1]) {
-        selectingStart = true;
+        selectStart = true;
         start = null;
-        document.getElementById('message').textContent = "Выберите старт.";
+        document.getElementById('message').textContent = "Выберите старт";
         drawMaze(maze);
         return;
       }
       if (x === finish[0] && y === finish[1]) {
-        selectingFinish = true;
+        selectFinish = true;
         finish = null;
-        document.getElementById('message').textContent = "Выберите финиш.";
+        document.getElementById('message').textContent = "Выберите финиш";
         drawMaze(maze);
         return;
       }
@@ -152,28 +141,25 @@
     drawMaze(maze);
   }
 
-  // Обработчик кликов
-  function addCanvasClickHandler() {
+  function canvasClick() {
     const canvas = document.getElementById('mazeCanvas');
     canvas.addEventListener('click', (e) => {
       const rect = canvas.getBoundingClientRect();
       const y = Math.floor((e.clientX - rect.left) / cellSize);
       const x = Math.floor((e.clientY - rect.top) / cellSize);
-      handleCellClick(x, y);
+      clickStartFinish(x, y);
     });
   }
 
-  // Генерация и поиск
   document.getElementById('generateButton').addEventListener('click', () => {
     const size = parseInt(document.getElementById('sizeInput').value, 10);
-    generateMaze(size);
+    genMaze(size);
     drawMaze(maze);
     document.getElementById('message').textContent = "";
   });
 
   document.getElementById('startButton').addEventListener('click', Animation);
-  addCanvasClickHandler();
+  canvasClick();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
